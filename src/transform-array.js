@@ -13,9 +13,53 @@ const { NotImplementedError } = require('../extensions/index.js');
  * transform([1, 2, 3, '--discard-prev', 4, 5]) => [1, 2, 4, 5]
  * 
  */
-function transform(/* arr */) {
-  throw new NotImplementedError('Not implemented');
-  // remove line with error and write your code here
+function transform(arr) {
+  if (!Array.isArray(arr)) throw new Error("'arr' parameter must be an instance of the Array!");
+
+  const typesArray = arr.map((element) => {
+    return { value: element, isControl: typeof element !== 'number' }
+  });
+
+  if (typesArray.every(element => !element.isControl)) {
+    return arr;
+  }
+
+  const result = [];
+
+  for (let i = 0; i < typesArray.length; i++) {
+    switch (typesArray[i].value) {
+      case '--discard-next':
+        if (typesArray[i + 1]) {
+          typesArray[i + 1].isDeleted = true;
+          // result.splice(i + 1, 1);
+        }
+        break;
+      case '--discard-prev':
+        if (typesArray[i - 1]) {
+          typesArray[i - 1].isDeleted = true;
+          result.splice(i - 1, 1);
+        }
+        break;
+      case '--double-next':
+        if (typesArray[i + 1]) {
+          typesArray[i + 1].isDuplicated = true;
+          result.push(typesArray[i + 1].value);
+        }
+        break;
+      case '--double-prev':
+        if (Boolean(typesArray[i - 1]) && typesArray[i - 1].isDeleted !== true) {
+          typesArray[i - 1].isDuplicated = true;
+          result.push(typesArray[i - 1].value);
+        }
+        break;
+      default:
+        if (typesArray[i].isDeleted !== true) {
+          result.push(typesArray[i].value);
+        }
+    }
+  }
+
+  return result;
 }
 
 module.exports = {
